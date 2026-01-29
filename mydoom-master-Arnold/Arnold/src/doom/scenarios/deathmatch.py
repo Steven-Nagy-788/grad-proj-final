@@ -116,7 +116,10 @@ def main(parser, args, parameter_server=None):
     network = get_model_class(params.network_type)(params)
     if params.reload:
         logger.info(f"Reloading model from {params.reload}...")
-        model_path = os.path.join(params.dump_path, params.reload)
+        if os.path.isfile(params.reload):
+            model_path = params.reload
+        else:
+            model_path = os.path.join(params.dump_path, params.reload)
         map_location = get_device_mapping(params.gpu_id)
         reloaded = torch.load(model_path, map_location=map_location)
         network.module.load_state_dict(reloaded)

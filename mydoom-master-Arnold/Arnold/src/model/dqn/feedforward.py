@@ -43,7 +43,7 @@ class DQNFeedforward(DQN):
 
         return self.module(
             screens.view(1, -1, *self.screen_shape[1:]),
-            [variables[-1, i] for i in range(self.params.n_variables)],
+            [variables[-1, i].unsqueeze(0) for i in range(self.params.n_variables)],
         )
 
     def f_train(
