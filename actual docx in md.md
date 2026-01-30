@@ -156,7 +156,6 @@ Map Comparison View: Side-by-side difficulty metrics (radar charts), sortable ta
 Timeline Playback: Frame-by-frame video reconstruction with synchronized event overlays, bug markers with LLM-generated annotations
 Analytics: Temporal performance graphs, bug occurrence heatmaps, regression detection charts
 Design Rationale: Context-Rich AI Analysis
-
 Why Extract Metrics Before CV Detection:
 
 Telemetry is instant - Collected during gameplay with <5ms overhead (no processing delay)
@@ -170,7 +169,6 @@ Agent dies at frame 4959:
 3. LLM receives both: "Agent died due to geometry clip at coordinates..."
    vs. LLM with CV only: "Something clipped" (no death context, no coordinates)
 Path to Unity/Unreal Extension:
-
 Implement new adapter class adhering to the GameEnvironment interface
 Map engine-specific telemetry to abstract primitives (Unity: Transform.position → (x,y,z), Unreal: ACharacter::TakeDamage() → health_event)
 Optional: Fine-tune CV model on Unity/Unreal visual styles (200-300 images, 1-2 hours GPU time)
@@ -634,40 +632,408 @@ Project Planning and Management
 Use some software for the primitive plan of your project. Describes how this product
 interfaces with the user.
 Project Timeline Revisited
-This section provides an updated version of the project timeline, including the major tasks to be accomplished, their interdependence, and their tentative start/stop dates. The plan also includes information on hardware, software, and resource requirements. The project plan should be accompanied by one or more PERT or GANTT charts. 
-Note: Any deviations should be reported with justification, and the action plan to mitigate any risk.
+
 Preliminary Budget Adjusted
 This section provides an initial budget for the project, itemized by cost factor.
 
 System Development Process/Methodology 
-You provide detailed information about the system development process or methodology at this stage. In addition, you should include the tools/technologies planned/used.
+The development of the Deep Reinforcement Learning–based Game Quality Testing Framework follows an iterative, research-driven hybrid methodology that combines elements of Incremental Development, Agile Prototyping, and the Design Science Research (DSR) paradigm. This approach is particularly suited to AI-centric systems where empirical validation, experimentation, and progressive refinement are essential.
+Unlike traditional linear models (e.g., Waterfall), the adopted methodology supports continuous evaluation of system effectiveness through controlled experiments, allowing architectural and algorithmic adjustments based on observed agent behavior, bug detection accuracy, and performance metrics.
+
 Requirements Engineering
 Requirements Elicitation Techniques
-Briefly describe the techniques used to gather requirements (e.g., interviews, surveys, prototyping) and their purpose. Mention the stakeholders involved and how the techniques ensure the requirements align with stakeholder needs. Add the details, including survey or interview questions and their responses, in the Appendix section for reference.
+The requirements elicitation process employed a combination of qualitative and analytical techniques to ensure alignment with stakeholder needs, academic objectives, and real-world applicability.
+3.1.1 Literature Review and Document Analysis
+A systematic review of peer-reviewed academic research was conducted to identify:
+Common categories of game bugs
+
+
+Limitations of existing automated testing approaches
+
+
+Successful applications of reinforcement learning in game environments
+
+
+Metrics used for evaluating level difficulty and playability
+
+
+Key sources included IEEE Transactions on Games, arXiv preprints, and Scopus-indexed conference papers. This technique ensured that the system requirements are grounded in validated research findings rather than ad-hoc assumptions.
+Outcome:
+Identification of core functional requirements such as autonomous level execution, stuck-state detection, and bug classification
+
+
+Definition of non-functional requirements related to reproducibility, scalability, and precision
+
+
+3.1.2 Supervisor and Academic Stakeholder Consultation
+Regular consultations were conducted with the academic supervisor to validate:
+Project scope and feasibility within a graduation timeline
+
+
+Alignment with faculty evaluation criteria
+
+
+Appropriate balance between implementation and research contribution
+
+
+These discussions influenced decisions such as:
+Limiting the proof-of-concept to a single engine (VizDoom)
+
+
+Prioritizing reproducibility and explainability over end-user polish
+
+
+Positioning the framework as a QA augmentation tool rather than a replacement for human testers
+
+
+Outcome:
+Refined scope definition
+
+
+Clear success metrics aligned with academic assessment
+
+
+3.1.3 Industry Practice Analysis (Benchmarking)
+An analysis of current industry QA workflows was performed through:
+Review of publicly available postmortems from game studios
+
+
+Tool documentation from commercial QA solutions
+
+
+Developer blogs and conference talks (GDC)
+
+
+This technique helped identify practical requirements such as:
+Structured bug reports with reproduction steps
+
+
+Integration potential with existing QA pipelines
+
+
+Actionable output rather than raw telemetry
+
+
+Outcome:
+Requirement for natural-language bug reports
+
+
+Emphasis on developer-friendly outputs (severity, screenshots, timestamps)
+
+
+
+3.1.4 Prototyping and Iterative Refinement
+Early functional prototypes of the RL agent execution and telemetry extraction modules were developed to validate assumptions and uncover hidden requirements.
+Observations from prototype runs revealed needs such as:
+Deterministic execution control
+
+
+Efficient storage of high-frequency telemetry
+
+
+Threshold-based bug triggering to avoid false positives
+
+
+Outcome:
+Refinement of functional requirements
+
+
+Identification of performance and storage constraint
+
+
+
 
 Similar Systems
-Describes the relationship of this product with any other products. Specifies if this product is intended to be stand-alone, or else used as a component of a larger product. If the latter, this section discusses the relationship of this product to the larger product.
-Academic Scientific Research
-Here you need to present similar work that was published in at least 3 prominent papers in your research area. Selected papers should be approved by the supervisor and preferable to be published in a Scopus-indexed journal or conference.
+This section examines existing systems related to automated game testing and positions the proposed framework within the broader academic and industrial landscape. The system is designed as a stand-alone testing framework that can also be integrated as a component within larger QA or CI/CD pipelines.
+
+3.2.1 Academic Scientific Research
+Several academic studies have explored automated game testing using AI-driven approaches. The most relevant works include:
+
+1. Arıyürek et al. (2019) – Automated Video Game Testing Using Synthetic and Humanlike Agents
+This work investigates the use of AI agents to simulate human gameplay for testing purposes. The agents are evaluated based on coverage and realism.
+Strengths:
+Demonstrates feasibility of agent-based automated testing
+
+
+Emphasizes human-like behavior
+
+
+Limitations:
+Limited bug taxonomy coverage
+
+
+Lacks structured bug reporting mechanisms
+
+
+No engine-agnostic architecture
+
+
+Relation to Proposed System:
+The proposed framework extends this work by incorporating formal bug detection, telemetry-based metrics, and natural language reporting.
+
+2. Mastain & Petrillo (2023) – BDD-Based Framework with RL Integration
+This research integrates reinforcement learning into behavior-driven development (BDD) testing workflows.
+Strengths:
+Combines RL with formal testing specifications
+
+
+Strong theoretical grounding
+
+
+Limitations:
+Requires manual scenario definitions
+
+
+Less effective for emergent gameplay behaviors
+
+
+Relation to Proposed System:
+The proposed system removes the dependency on predefined test scripts, allowing RL agents to discover bugs autonomously through exploration.
+
+3. Butt et al. (2023) – Taxonomy of Game Bugs
+This study presents a comprehensive taxonomy of game implementation bugs across genres.
+Strengths:
+Detailed classification of bug types
+
+
+Empirically grounded taxonomy
+
+
+Limitations:
+No automated detection mechanism
+
+
+Serves as descriptive rather than operational research
+
+
+Relation to Proposed System:
+The proposed framework operationalizes this taxonomy by mapping bug categories to detectable telemetry patterns and visual anomalies.
+
+Summary of Academic Comparison
+
+Feature
+Prior Research
+Proposed System
+Autonomous testing
+Partial
+Yes
+RL-driven exploration
+Limited
+Yes
+Engine-agnostic design
+No
+Yes
+Bug taxonomy integration
+Descriptive
+Operational
+Natural language reports
+No
+Yes
+
+	
+
+
+
+
 Market/Industrial Research
-Here you need to present relevant applications and present the key contributions/additions of your application, you also need to mention the strengths and weaknesses of existing comparable applications
+The industrial landscape for automated game testing and quality assurance includes both established commercial tools and emerging AI-powered solutions. These systems vary in scope, automation level, and analytical depth. This section reviews representative market offerings, discusses their strengths and limitations, and positions the proposed framework relative to them.
+
+A) Scripted Test Bots
+Many game development studios utilize in-house scripted bots or macros to automate repetitive testing workflows.
+Examples
+Navigation testers that walk through levels
+
+
+Combat testers that trigger attack sequences
+
+
+Regression scripts that verify game builds after updates
+
+
+Strengths
+Predictable and deterministic execution
+
+
+Simple to write for narrow cases
+
+
+Useful for repeated regression checks
+
+
+Weaknesses
+Fragile and high maintenance — scripts must be updated for every new feature
+
+
+Cannot generalize across game versions or unanticipated gameplay scenarios
+
+
+Limited ability to detect emergent bugs or systemic quality issues
+
+
+Comparison to Proposed Framework
+Proposed System Advantage: Uses RL-driven agents that adapt their behavior, reducing manual scripting and maintenance burdens.
+
+
+Proposed System Advantage: Can explore unexpected states and gameplay interactions, improving discovery of emergent bugs.
+
+
+
+B) Telemetry & Performance Analytics Platforms
+Third-party platforms such as Unity Analytics, GameBench, and custom telemetry dashboards provide deep insights into player behavior and performance metrics.
+Examples
+Unity Analytics (industry standard for Unity-based games)
+
+
+GameBench (real-time performance monitoring across devices)
+
+
+Strengths
+Scalable collection of telemetry from many users and sessions
+
+
+Rich visualization and reporting tools
+
+
+Performance profiling across devices
+
+
+Weaknesses
+Not autonomous testers: These tools do not automatically generate test cases or analyze gameplay for quality defects
+
+
+No innate bug detection logic: Require manual analysis or post-hoc interpretation
+
+
+Focused primarily on performance & usage, not QA logic
+
+
+Comparison to Proposed Framework
+Proposed System Advantage: Goes beyond telemetry collection to autonomously analyze telemetry and detect quality issues
+
+
+Proposed System Advantage: Generates structured bug reports with actionable insights and remediation context
+
+
+
+C) Commercial AI-Assisted QA Platforms
+Several vendors and startups are now marketing AI-powered automated QA tools that leverage machine learning to assist game testing.
+Examples
+AI QA services integrated into continuous integration (CI) pipelines
+
+
+Third-party machine learning modules that claim to automatically test gameplay
+
+
+Strengths
+Promise of automation — can run tests without full human supervision
+
+
+Integration options with CI/CD workflows
+
+
+Weaknesses
+Opaque ML models: Behaviors and detection logic are often black-box and undocumented
+
+
+Limited generalizability: Many tools are tied to specific engines or platforms
+
+
+Lack of academic validation: Few tools have documented performance metrics or reproducibility evidence
+
+
+High adoption cost for smaller studios or individual developers
+
+
+Comparison to Proposed Framework
+Proposed System Advantage: Built to be open-source and transparent, enabling inspection, tuning, and extension
+
+
+Proposed System Advantage: Engine‐agnostic design via adapter pattern, not tied to a single engine
+
+
+Proposed System Advantage: Combines reinforcement learning, telemetry analytics, computer vision, and natural-language reporting into a unified, explainable pipeline
+
+
+
 Functional Requirements
 Showdown with a figure of the system use case diagram.
 
 
 
 Figure 2: Use-Case Diagram of XYZ Project
-System Functions
-List the Functional requirements which describe the possible effects of a software system, in other words, what the system must accomplish. 
-Example:
-Indicate the priority level of the requirement, such as "Must-have", "Should-have", or "Could-have".
-The system must …………..
-Users should be able to ……...
-Users must be able to ………. .
-The system must ………….. .
-Users should receive ……. .
-The system must …...
-The system should allow users to ……….
+System Functions 
+
+Core Execution & Telemetry
+
+• The system must autonomously navigate and execute game levels using Deep Reinforcement Learning (DQN) agents without human intervention.
+• The system must collect frame-by-frame gameplay telemetry (health, position, ammunition, events) at a frequency of 35 Hz.
+
+• The system must allow users to configure the number of test episodes per map (defaulting to 5) and set maximum episode durations.
+
+• The system must utilize an engine-specific adapter (e.g., VizDoom) to translate game states into abstract data for the RL agent.
+
+Automated Bug Detection
+• The system must detect "Stuck States" where the agent's position remains unchanged for a specific threshold (e.g., 100+ frames).
+
+• The system must detect "Instant Death" events where health drops significantly (e.g., >80%) in a single frame.
+
+• The system must identify visual anomalies (texture corruption, clipping, UI errors) using a Computer Vision (CNN) module running in parallel with gameplay.
+
+• The system must validate level solvability by verifying if the agent can reach the exit or complete objectives within the timeout threshold.
+
+Analysis & Reporting
+
+• The system must calculate an objective "Hardness Score" (0–100) for each level based on weighted factors like death rate, completion time, and navigation complexity.
+
+• The system should generate natural language bug reports using an LLM (e.g., GPT-4 or Claude) that combines telemetry data with visual context to describe errors.
+
+• The system should identify "Unreachable Areas" by generating heatmaps that highlight map regions with low visit frequency (<10%) across multiple runs.
+
+• The system must store all maps, runs, events, metrics, and bug reports in a centralized PostgreSQL database.
+Visualization & User Interface
+• Users should be able to view a web-based dashboard containing bug reports, severity badges, and reproduction steps.
+
+• Users should be able to watch gameplay video replays with synchronized event overlays and timestamped bug markers.
+
+• Users should be able to compare difficulty metrics between different map versions using side-by-side charts.
+
+• The system could support extension to other game engines (Unity, Unreal) through the implementation of additional adapter classes.
+Summary of Priorities
+
+
+Requirement ID
+Function Description
+Priority
+FR-01
+Autonomous agent navigation and gameplay
+Must-have
+FR-02
+Real-time telemetry extraction (Health, Position)
+Must-have
+FR-03
+Behavioral bug detection (Stuck, Instant Death)
+Must-have
+FR-04
+Visual anomaly detection via Computer Vision
+Must-have
+FR-05
+Algorithmic Difficulty/Hardness Scoring
+Must-have
+FR-06
+Database storage for cross-run regression analysis
+Must-have
+FR-07
+LLM-generated natural language bug reports
+Should-have
+FR-08
+Web Dashboard for visualization and playback
+Should-have
+FR-09
+Cross-engine compatibility (Unity/Unreal adapters)
+Could-have
+
+
+
 Detailed Functional Specification
 This section lists the detailed functional requirements in ranked order. Each functional requirement should be specified in a format similar to the following:
 Table 1: TReq. Name
@@ -707,7 +1073,20 @@ Non-functional Requirements
 Specifies the particular non-functional attributes required by the system. 
 Examples are provided below.
 Security
+Data Isolation: The system must utilize containerization (Docker) to restrict the application’s filesystem access, ensuring test execution does not compromise the host operating system.
+Credential Management: Database credentials and API keys (e.g., for LLM services) must be stored in environment variables or .env files and never hardcoded into the source code repository.
+Input Validation: The system must sanitize all map file inputs to prevent path traversal attacks or malicious file execution during the loading phase.
+Access Control: For production deployments, the API and Dashboard must operate behind an HTTPS/TLS certificate, with optional token-based authentication for remote access,.
+
+
+
+
+
 Reliability
+Deterministic Execution: To ensure reproducibility for regression testing, the system must control random seeds to keep agent performance variance below 10% across repeated runs on the same map.
+Data Integrity: The system must utilize an ACID-compliant database (PostgreSQL) to ensure that partial test runs or crashes do not result in corrupted metrics or incomplete run logs,.
+Failure Handling: The system must gracefully handle game application crashes (e.g., "Instant Death" or process termination) by capturing the stack trace and logging the event without crashing the entire testing pipeline,.
+
 Portability
 Maintainability
 Availability

@@ -1,2 +1,8 @@
 
 /mydoom-master-Arnold/.venv
+/mydoom-master-Arnold/Arnold/src/model/dqn/__pycache__
+/mydoom-master-Arnold/Arnold/src/model/__pycache__
+/mydoom-master-Arnold/Arnold/src/doom/scenarios/__pycache__
+/mydoom-master-Arnold/Arnold/src/doom/__pycache__
+/mydoom-master-Arnold/Arnold/src/__pycache__
+/backend/venv

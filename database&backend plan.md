@@ -1,25 +1,25 @@
 # Backend & Database Architecture Plan
-## Full-Stack Web Deployment
+## Local Development Environment
 
 ---
 
 ## Executive Summary
 
-This is a **full-stack web application** with:
-- **Frontend:** React.js SPA (Single Page Application) served via CDN/NGINX
+This is a **local web application** with:
+- **Frontend:** React.js SPA (Single Page Application) served locally
 - **Backend:** FastAPI REST API + WebSocket server for real-time updates
-- **Worker Layer:** Celery workers for long-running agent test executions
-- **Database:** PostgreSQL (managed service: DigitalOcean, AWS RDS, or Heroku)
-- **File Storage:** S3-compatible object storage (MinIO for self-hosted, AWS S3 for cloud)
-- **Caching:** Redis (task queue + API response caching)
-- **Deployment:** Docker containers orchestrated with Docker Compose (dev) or Kubernetes (production)
+- **Worker Layer:** Celery workers for long-running agent training/testing
+- **Database:** PostgreSQL (Docker container - local)
+- **File Storage:** Supabase Storage (free 1GB S3-compatible API)
+- **Caching:** Redis (task queue + logs storage)
+- **Deployment:** Docker Compose (all services run on your machine)
 
-**Why This Architecture Works for Web:**
-1. **Async Task Processing:** Agent tests run 5-10 minutes → can't block HTTP requests → Celery handles background execution
-2. **Real-Time Progress:** WebSocket connections push progress updates to frontend (no polling)
-3. **Scalable:** Stateless API + horizontal worker scaling (add more Celery workers under load)
-4. **Reliable:** Task queue persists jobs in Redis (survive server restarts)
-5. **Fast:** CDN serves static assets (videos/screenshots), Redis caches API responses
+**Why This Architecture Works for Local:**
+1. **Training + Testing:** Agent training runs hours → Celery handles background execution with stop/resume
+2. **Real-Time Logs:** WebSocket pushes training iterations, DQN loss, kills, health to frontend
+3. **Free Storage:** Supabase 1GB free tier for .wad files, training checkpoints, logs
+4. **Reliable:** Task queue persists jobs in Redis (can stop/restart training)
+5. **Full Control:** Everything runs locally, no cloud costs ($0/month)
 
 ---
 
@@ -46,14 +46,16 @@ This is a **full-stack web application** with:
                    ↓                                  ↓
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                     FastAPI Backend (API Layer)                           │
-│  • REST endpoints (/api/v1/maps, /runs, /bugs)                           │
+│  • REST endpoints (/api/v1/maps, /training, /testing)                    │
 │  • Request validation (Pydantic)                                          │
-│  • Authentication (JWT tokens)                                            │
 │  • Task dispatch (submit jobs to Celery)                                 │
 │  Location: backend/api/ (TO CREATE)                                       │
-│    ├── routes/maps.py, runs.py, bugs.py, analysis.py, health.py         │
+│    ├── routes/maps.py - Upload/list maps                                │
+│    ├── routes/training.py - Start/stop training, get logs ⭐            │
+│    ├── routes/testing.py - Start/stop testing, get metrics ⭐           │
+│    ├── routes/health.py - System health check                           │
 │    ├── schemas/ (Pydantic models)                                        │
-│    └── dependencies.py (JWT auth, DB sessions)                           │
+│    └── dependencies.py (DB sessions)                                     │
 └──────────────────┬──────────────────────────────────────────────────────┘
                    │
                    ↓
@@ -69,37 +71,45 @@ This is a **full-stack web application** with:
 └──────────────────┬──────────────────────────────────────────────────────┘
                    │
           ┌────────┴────────┬─────────────────────┬──────────────────┐
-          ↓                 ↓                     ↓                  ↓
-┌─────────────────┐  ┌──────────────┐  ┌──────────────────┐  ┌──────────────┐
-│  Redis Cache    │  │ PostgreSQL   │  │  S3/MinIO        │  │ Celery Queue │
-│  • API cache    │  │  • Metadata  │  │  • Videos        │  │  • Task jobs │
-│  • Session data │  │  • Events    │  │  • Screenshots   │  │  • Results   │
-│  Redis image    │  │  • Metrics   │  │  • Thumbnails    │  │  Redis broker│
-│  (docker-compose)│ │  PostgreSQL  │  │  MinIO container │  │  (same Redis)│
-│  port 6379      │  │  managed svc │  │  or DigitalOcean │  │  backend/    │
-│                 │  │  port 5432   │  │  Spaces          │  │  celery_app.py│
+          ↓                 ↓              upabase        │  │ Celery Queue │
+│  • Logs cache   │  │  • Training  │  │  • Maps (.wad)   │  │  • Tasks     │
+│  • Task queue   │  │    logs      │  │  • Checkpoints   │  │  • Training  │
+│  Redis image    │  │  • Testing   │  │  • Test logs     │  │  • Testing   │
+│  (docker-compose)│ │    metrics   │  │  Free 1GB S3 API │  │  Redis broker│
+│  port 6379      │  │  PostgreSQL  │  │  supabase.co     │  │  (same Redis)│
+│                 │  │  local Docker│  │  backend/storage/│  │  backend/    │
+│  backend/cache/ │  │  port 5432   │  │  supabase.py     │  │  celery_app.py│
+│  (TO CREATE)    │  │  backend/db/ │  │  (TO CREATE)     │  │  (TO CREATE)py│
 │  backend/cache/ │  │  backend/db/ │  │  backend/storage/│  │  (TO CREATE) │
 │  (TO CREATE)    │  │  (TO CREATE) │  │  (TO CREATE)     │  │              │
 └─────────────────┘  └──────────────┘  └──────────────────┘  └──────┬───────┘
                                                                      ↓
                      ┌────────────────────────────────────────────────────┐
-                     │         Celery Workers (Agent Execution)           │
+                     │         Celery Workers (Agent Training/Testing)    │
+                     │  TRAINING TASKS:                                   │
                      │  • Load DQN agent from mydoom-master-Arnold/       │
-                     │  • Initialize VizDoom environment                  │
-                     │  • Run episodes (5 per test)                       │
-                     │  • Extract telemetry (2100 frames/episode)         │
-                     │  • Run CV model (bug detection)                    │
-                     │  • Call LLM API (generate reports)                 │
-                     │  • Store results in DB + S3                        │
-                     │  • Broadcast progress via WebSocket                │
-                     │  Location: backend/workers/agent_runner.py         │
-                     │            (TO CREATE - wraps Arnold agent)        │
+                     │  • Run training loop (Trainer.run())               │
+                     │  • Log: iteration, DQN loss, reward                │
+                     │  • Save checkpoints every N iterations             │
+                     │  • Broadcast progress: {iter, loss} via WebSocket  │
+                     │  • Store logs as JSON in PostgreSQL                │
+                     │                                                    │
+                     │  TESTING TASKS:                                    │
+                     │  • Load pre-trained checkpoint                     │
+                     │  • Run N episodes (inference only)                 │
+                     │  • Track: kills, deaths, health, ammo per episode  │
+                     │  • Calculate: min/max/mean kills                   │
+                     │  • Broadcast progress: {episode, kills, health}    │
+                     │  • Store test metrics as JSON                      │
+                     │                                                    │
+                     │  Location: backend/workers/                        │
+                     │    ├── training_worker.py (TO CREATE) ⭐⭐⭐       │
+                     │    └── testing_worker.py (TO CREATE) ⭐⭐⭐        │
                      │  Uses: mydoom-master-Arnold/Arnold/                │
+                     │    ├── src/trainer.py (EXISTING - training loop)  │
                      │    ├── src/doom/game.py (EXISTING - VizDoom wrap) │
-                     │    ├── src/trainer.py (EXISTING - training logic) │
                      │    ├── src/model/dqn/ (EXISTING - networks)       │
-                     │    ├── pretrained/*.pth (EXISTING - checkpoints)  │
-                     │    └── resources/*.wad (EXISTING - game files)    │
+                     │    └── pretrained/*.pth (EXISTING - checkpoints)  │
                      └────────────────────────────────────────────────────┘
 ```
 
@@ -248,7 +258,442 @@ grad-proj-final/
 
 ---
 
-## Complete Repository File Mapping
+## API Endpoints Specification
+
+### Maps API
+
+#### POST /api/v1/maps/upload
+Upload custom .wad map file to Supabase storage.
+
+**Request:**
+```http
+POST /api/v1/maps/upload
+Content-Type: multipart/form-data
+
+file: custom_map.wad (binary file)
+name: "My Test Map" (optional, defaults to filename)
+```
+
+**Response:** (201 Created)
+```json
+{
+  "id": 123,
+  "name": "My Test Map",
+  "filename": "custom_map.wad",
+  "file_url": "https://abc.supabase.co/storage/v1/object/maps/123_custom_map.wad",
+  "uploaded_at": "2026-01-30T12:00:00Z",
+  "size_bytes": 2048576
+}
+```
+
+#### GET /api/v1/maps
+List all uploaded maps.
+
+**Response:** (200 OK)
+```json
+{
+  "maps": [
+    {
+      "id": 123,
+      "name": "My Test Map",
+      "filename": "custom_map.wad",
+      "uploaded_at": "2026-01-30T12:00:00Z",
+      "size_bytes": 2048576,
+      "train_count": 5,
+      "test_count": 12
+    }
+  ],
+  "total": 1
+}
+```
+
+#### DELETE /api/v1/maps/{map_id}
+Delete map from database and Supabase storage.
+
+---
+
+### Training API ⭐
+
+#### POST /api/v1/training/start
+Start training agent on specified map with fixed parameters.
+
+**Request:**
+```http
+POST /api/v1/training/start
+Content-Type: application/json
+
+{
+  "map_id": 123,
+  "max_iterations": 100000,
+  "action_combinations": "move_fb;move_lr;turn_lr;attack",
+  "params": {
+    "scenario": "deathmatch",
+    "height": 60,
+    "width": 108,
+    "frame_skip": 4,
+    "network_type": "dqn_ff",
+    "batch_size": 32,
+    "learning_rate": 0.0002,
+    "gamma": 0.99
+  }
+}
+```
+
+**Response:** (202 Accepted)
+```json
+{
+  "training_id": "train_abc123",
+  "status": "started",
+  "map_id": 123,
+  "max_iterations": 100000,
+  "started_at": "2026-01-30T12:00:00Z",
+  "task_id": "celery-task-id-123"
+}
+```
+
+#### POST /api/v1/training/stop
+Stop all running training tasks.
+
+**Request:**
+```http
+POST /api/v1/training/stop
+Content-Type: application/json
+
+{
+  "training_id": "train_abc123"  // optional, if empty stops ALL training
+}
+```
+
+**Response:** (200 OK)
+```json
+{
+  "stopped_count": 1,
+  "training_ids": ["train_abc123"],
+  "message": "Training stopped successfully"
+}
+```
+
+#### GET /api/v1/training/{training_id}/status
+Get training status and latest metrics.
+
+**Response:** (200 OK)
+```json
+{
+  "training_id": "train_abc123",
+  "status": "running",  // pending, running, stopped, completed, failed
+  "map_id": 123,
+  "map_name": "My Test Map",
+  "progress": {
+    "current_iteration": 45620,
+    "max_iterations": 100000,
+    "progress_percent": 45.62,
+    "elapsed_seconds": 1825,
+    "estimated_remaining_seconds": 2175
+  },
+  "latest_metrics": {
+    "iteration": 45620,
+    "dqn_loss": 0.18525,
+    "timestamp": "2026-01-30T12:30:25Z"
+  },
+  "started_at": "2026-01-30T12:00:00Z"
+}
+```
+
+#### GET /api/v1/training/{training_id}/logs
+Get complete training log as JSON.
+
+**Response:** (200 OK)
+```json
+{
+  "training_id": "train_abc123",
+  "map_id": 123,
+  "max_iterations": 100000,
+  "final_iteration": 100000,
+  "started_at": "2026-01-30T12:00:00Z",
+  "completed_at": "2026-01-30T15:30:00Z",
+  "duration_seconds": 12600,
+  "iterations": [
+    {
+      "iteration": 400,
+      "dqn_loss": 0.11225,
+      "timestamp": "2026-01-30T12:00:04Z"
+    },
+    {
+      "iteration": 800,
+      "dqn_loss": 0.16216,
+      "timestamp": "2026-01-30T12:00:05Z"
+    }
+    // ... 250 iterations total (every 400 iterations logged)
+  ],
+  "max_loss": 0.25066,
+  "min_loss": 0.10480,
+  "mean_loss": 0.18234,
+  "final_loss": 0.14522
+}
+```
+
+---
+
+### Testing API ⭐
+
+#### POST /api/v1/testing/start
+Start testing pre-trained agent on specified map.
+
+**Request:**
+```http
+POST /api/v1/testing/start
+Content-Type: application/json
+
+{
+  "map_id": 123,
+  "checkpoint": "pretrained/defend_the_center.pth",  // or training checkpoint
+  "episodes": 20,
+  "action_combinations": "move_fb;move_lr;turn_lr;attack",
+  "params": {
+    "scenario": "deathmatch",
+    "episode_time": 120,  // seconds per episode
+    "visualize": false
+  }
+}
+```
+
+**Response:** (202 Accepted)
+```json
+{
+  "test_id": "test_xyz789",
+  "status": "started",
+  "map_id": 123,
+  "checkpoint": "pretrained/defend_the_center.pth",
+  "episodes": 20,
+  "started_at": "2026-01-30T16:00:00Z",
+  "task_id": "celery-task-id-789"
+}
+```
+
+#### POST /api/v1/testing/stop
+Stop all running testing tasks.
+
+**Request:**
+```http
+POST /api/v1/testing/stop
+Content-Type: application/json
+
+{
+  "test_id": "test_xyz789"  // optional, if empty stops ALL testing
+}
+```
+
+**Response:** (200 OK)
+```json
+{
+  "stopped_count": 1,
+  "test_ids": ["test_xyz789"],
+  "message": "Testing stopped successfully"
+}
+```
+
+#### GET /api/v1/testing/{test_id}/status
+Get testing status and current episode.
+
+**Response:** (200 OK)
+```json
+{
+  "test_id": "test_xyz789",
+  "status": "running",  // pending, running, stopped, completed, failed
+  "map_id": 123,
+  "map_name": "My Test Map",
+  "checkpoint": "pretrained/defend_the_center.pth",
+  "progress": {
+    "current_episode": 12,
+    "total_episodes": 20,
+    "progress_percent": 60.0,
+    "elapsed_seconds": 1440,
+    "estimated_remaining_seconds": 960
+  },
+  "latest_episode": {
+    "episode_num": 12,
+    "kills": 35,
+    "health_remaining": 84,
+    "duration_seconds": 28,
+    "timestamp": "2026-01-30T16:24:00Z"
+  },
+  "started_at": "2026-01-30T16:00:00Z"
+}
+```
+
+#### GET /api/v1/testing/{test_id}/results
+Get complete testing results with aggregated metrics.
+
+**Response:** (200 OK)
+```json
+{
+  "test_id": "test_xyz789",
+  "map_id": 123,
+  "map_name": "My Test Map",
+  "checkpoint": "pretrained/defend_the_center.pth",
+  "started_at": "2026-01-30T16:00:00Z",
+  "completed_at": "2026-01-30T16:40:00Z",
+  "duration_seconds": 2400,
+  "episodes": [
+    {
+      "episode_num": 1,
+      "kills": 42,
+      "deaths": 1,
+      "duration_seconds": 7,
+      "health_lost": 116,  // 100 → -16 (dead)
+      "ammo_used": 56,
+      "final_health": -16,
+      "events": [
+        {"timestamp": 0.0, "type": "kill"},
+        {"timestamp": 0.2, "type": "ammo_lost", "amount": 1},
+        {"timestamp": 7.0, "type": "death", "health": -16}
+      ]
+    },
+    {
+      "episode_num": 2,
+      "kills": 40,
+      "deaths": 1,
+      "duration_seconds": 13,
+      "health_lost": 104,
+      "ammo_used": 56,
+      "final_health": -28
+    }
+    // ... 20 episodes total
+  ],
+  "aggregate_metrics": {
+    "total_kills": 750,
+    "total_deaths": 20,
+    "min_kills": 26,
+    "max_kills": 42,
+    "mean_kills": 37.5,
+    "median_kills": 38,
+    "std_kills": 4.2,
+    "min_health_lost": 96,
+    "max_health_lost": 136,
+    "mean_health_lost": 110.4,
+    "mean_duration_seconds": 18.5,
+    "survival_rate": 0.0,  // 0% (died in all episodes)
+    "kill_death_ratio": 37.5
+  }
+}
+```
+
+#### GET /api/v1/testing/{test_id}/logs
+Get detailed frame-by-frame logs for specific episode.
+
+**Query Parameters:**
+- `episode_num` (required): Episode number to get logs for
+
+**Response:** (200 OK)
+```json
+{
+  "test_id": "test_xyz789",
+  "episode_num": 1,
+  "duration_seconds": 7,
+  "frames": 245,  // 7 seconds × 35 fps
+  "events": [
+    {
+      "frame": 8,
+      "timestamp": 0.0,
+      "type": "kill",
+      "health": 100,
+      "ammo": 55
+    },
+    {
+      "frame": 12,
+      "timestamp": 0.2,
+      "type": "ammo_lost",
+      "ammo_before": 56,
+      "ammo_after": 55
+    },
+    {
+      "frame": 200,
+      "timestamp": 6.0,
+      "type": "health_lost",
+      "health_before": 100,
+      "health_after": 88,
+      "damage": 12
+    },
+    {
+      "frame": 245,
+      "timestamp": 7.0,
+      "type": "death",
+      "health": -16
+    }
+  ],
+  "health_timeline": [
+    {"timestamp": 0.0, "health": 100},
+    {"timestamp": 6.0, "health": 88},
+    {"timestamp": 6.2, "health": 68},
+    {"timestamp": 6.4, "health": 36},
+    {"timestamp": 7.0, "health": -16}
+  ]
+}
+```
+
+---
+
+### WebSocket API
+
+#### WS /ws
+Real-time updates for training/testing progress.
+
+**Connection:**
+```javascript
+const ws = new WebSocket('ws://localhost:8000/ws');
+ws.onopen = () => console.log('Connected');
+```
+
+**Message Types:**
+
+**Training Progress:**
+```json
+{
+  "type": "training_progress",
+  "training_id": "train_abc123",
+  "iteration": 45620,
+  "dqn_loss": 0.18525,
+  "timestamp": "2026-01-30T12:30:25Z"
+}
+```
+
+**Testing Progress:**
+```json
+{
+  "type": "testing_progress",
+  "test_id": "test_xyz789",
+  "episode": 12,
+  "kills": 35,
+  "health": 84,
+  "timestamp": "2026-01-30T16:24:00Z"
+}
+```
+
+**Training Completed:**
+```json
+{
+  "type": "training_completed",
+  "training_id": "train_abc123",
+  "final_iteration": 100000,
+  "final_loss": 0.14522,
+  "duration_seconds": 12600
+}
+```
+
+**Testing Completed:**
+```json
+{
+  "type": "testing_completed",
+  "test_id": "test_xyz789",
+  "episodes_completed": 20,
+  "total_kills": 750,
+  "mean_kills": 37.5
+}
+```
+
+---
+
+## Updated Project Directory Structure
 
 This section provides a **comprehensive file-by-file breakdown** of the entire repository structure, indicating which files exist in the Arnold agent directory (with line counts and purposes), and which files need to be created for the backend.
 

@@ -1,0 +1,154 @@
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - ========== Running DOOM ==========
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - Experiment will be saved in: ./dumped/default/nm7j3qruxb
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - scenario: defend_the_center
+                                              map_ids_train: [1]
+                                              map_ids_test: [1]
+                                              freedoom: True
+                                              height: 60
+                                              width: 108
+                                              gray: False
+                                              use_screen_buffer: True
+                                              use_depth_buffer: False
+                                              labels_mapping: 
+                                              game_features: 
+                                              render_hud: False
+                                              render_crosshair: True
+                                              render_weapon: True
+                                              hist_size: 2
+                                              frame_skip: 4
+                                              action_combinations: turn_lr+attack
+                                              freelook: False
+                                              speed: off
+                                              crouch: off
+                                              manual_control: False
+                                              players_per_game: 1
+                                              player_rank: 0
+                                              dump_path: ./dumped/default/nm7j3qruxb
+                                              visualize: False
+                                              evaluate: 0
+                                              human_player: False
+                                              reload: 
+                                              dump_freq: 0
+                                              gpu_id: 0
+                                              log_frequency: 100
+                                              network_type: dqn_ff
+                                              use_bn: False
+                                              batch_size: 32
+                                              replay_memory_size: 50000
+                                              start_decay: 0
+                                              stop_decay: 1000000
+                                              final_decay: 0.1
+                                              gamma: 0.99
+                                              dueling_network: False
+                                              recurrence: 
+                                              clip_delta: 1.0
+                                              variable_dim: [32, 32]
+                                              bucket_size: [1, 1]
+                                              hidden_dim: 512
+                                              update_frequency: 4
+                                              dropout: 0.0
+                                              optimizer: rmsprop,lr=0.0002
+                                              game_variables: [('health', 101), ('sel_ammo', 301)]
+                                              n_variables: 2
+                                              n_features: 0
+                                              n_fm: 3
+                                              use_continuous: False
+                                              episode_time: 120
+                                              eval_freq: 30000
+                                              eval_episodes: 20
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - 9 available buttons: ['MOVE_FORWARD', 'MOVE_BACKWARD', 'TURN_LEFT', 'TURN_RIGHT', 'MOVE_LEFT', 'MOVE_RIGHT', 'ATTACK', 'SPEED', 'CROUCH']
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - 3 available actions:
+                                              ['TURN_LEFT']
+                                              ['TURN_RIGHT']
+                                              ['ATTACK']
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - Reward values:
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - {'BASE_REWARD': 0.0, 'DISTANCE': 0.0, 'KILL': 5.0, 'DEATH': -5.0, 'SUICIDE': -5.0, 'MEDIKIT': 1.0, 'ARMOR': 1.0, 'INJURED': -1.0, 'WEAPON': 1.0, 'AMMO': 1.0, 'USE_AMMO': -0.2}
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - Input shape: (3, 60, 108)
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - Conv layer output dim : 4608
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - Hidden layer input dim: 4672
+INFO [341086] - 01/30/26 03:03:52 - 0:00:00 - Starting experiment...
+INFO [341086] - 01/30/26 03:03:53 - 0:00:02 - Training on map 1 ...
+INFO [341086] - 01/30/26 03:03:55 - 0:00:04 - === Iteration 400
+INFO [341086] - 01/30/26 03:03:55 - 0:00:04 - DQN loss: 0.11225
+INFO [341086] - 01/30/26 03:03:57 - 0:00:05 - === Iteration 800
+INFO [341086] - 01/30/26 03:03:57 - 0:00:05 - DQN loss: 0.16216
+INFO [341086] - 01/30/26 03:03:58 - 0:00:06 - === Iteration 1200
+INFO [341086] - 01/30/26 03:03:58 - 0:00:06 - DQN loss: 0.14246
+INFO [341086] - 01/30/26 03:03:59 - 0:00:08 - === Iteration 1600
+INFO [341086] - 01/30/26 03:03:59 - 0:00:08 - DQN loss: 0.19422
+INFO [341086] - 01/30/26 03:04:00 - 0:00:09 - === Iteration 2000
+INFO [341086] - 01/30/26 03:04:00 - 0:00:09 - DQN loss: 0.17395
+INFO [341086] - 01/30/26 03:04:02 - 0:00:10 - === Iteration 2400
+INFO [341086] - 01/30/26 03:04:02 - 0:00:10 - DQN loss: 0.13615
+INFO [341086] - 01/30/26 03:04:03 - 0:00:11 - === Iteration 2800
+INFO [341086] - 01/30/26 03:04:03 - 0:00:11 - DQN loss: 0.10480
+INFO [341086] - 01/30/26 03:04:04 - 0:00:13 - === Iteration 3200
+INFO [341086] - 01/30/26 03:04:04 - 0:00:13 - DQN loss: 0.14330
+INFO [341086] - 01/30/26 03:04:05 - 0:00:14 - === Iteration 3600
+INFO [341086] - 01/30/26 03:04:05 - 0:00:14 - DQN loss: 0.14999
+INFO [341086] - 01/30/26 03:04:07 - 0:00:15 - === Iteration 4000
+INFO [341086] - 01/30/26 03:04:07 - 0:00:15 - DQN loss: 0.16027
+INFO [341086] - 01/30/26 03:04:08 - 0:00:16 - === Iteration 4400
+INFO [341086] - 01/30/26 03:04:08 - 0:00:16 - DQN loss: 0.12041
+INFO [341086] - 01/30/26 03:04:09 - 0:00:17 - === Iteration 4800
+INFO [341086] - 01/30/26 03:04:09 - 0:00:17 - DQN loss: 0.13132
+INFO [341086] - 01/30/26 03:04:10 - 0:00:19 - === Iteration 5200
+INFO [341086] - 01/30/26 03:04:10 - 0:00:19 - DQN loss: 0.15225
+INFO [341086] - 01/30/26 03:04:11 - 0:00:20 - === Iteration 5600
+INFO [341086] - 01/30/26 03:04:11 - 0:00:20 - DQN loss: 0.16206
+INFO [341086] - 01/30/26 03:04:13 - 0:00:21 - === Iteration 6000
+INFO [341086] - 01/30/26 03:04:13 - 0:00:21 - DQN loss: 0.14766
+INFO [341086] - 01/30/26 03:04:14 - 0:00:22 - === Iteration 6400
+INFO [341086] - 01/30/26 03:04:14 - 0:00:22 - DQN loss: 0.13682
+INFO [341086] - 01/30/26 03:04:15 - 0:00:23 - === Iteration 6800
+INFO [341086] - 01/30/26 03:04:15 - 0:00:23 - DQN loss: 0.18525
+INFO [341086] - 01/30/26 03:04:16 - 0:00:25 - === Iteration 7200
+INFO [341086] - 01/30/26 03:04:16 - 0:00:25 - DQN loss: 0.14484
+INFO [341086] - 01/30/26 03:04:18 - 0:00:26 - === Iteration 7600
+INFO [341086] - 01/30/26 03:04:18 - 0:00:26 - DQN loss: 0.14452
+INFO [341086] - 01/30/26 03:04:19 - 0:00:28 - === Iteration 8000
+INFO [341086] - 01/30/26 03:04:19 - 0:00:28 - DQN loss: 0.16632
+INFO [341086] - 01/30/26 03:04:21 - 0:00:29 - === Iteration 8400
+INFO [341086] - 01/30/26 03:04:21 - 0:00:29 - DQN loss: 0.18399
+INFO [341086] - 01/30/26 03:04:22 - 0:00:30 - === Iteration 8800
+INFO [341086] - 01/30/26 03:04:22 - 0:00:30 - DQN loss: 0.17549
+INFO [341086] - 01/30/26 03:04:23 - 0:00:32 - === Iteration 9200
+INFO [341086] - 01/30/26 03:04:23 - 0:00:32 - DQN loss: 0.18000
+INFO [341086] - 01/30/26 03:04:24 - 0:00:33 - === Iteration 9600
+INFO [341086] - 01/30/26 03:04:24 - 0:00:33 - DQN loss: 0.18746
+INFO [341086] - 01/30/26 03:04:26 - 0:00:34 - === Iteration 10000
+INFO [341086] - 01/30/26 03:04:26 - 0:00:34 - DQN loss: 0.18596
+INFO [341086] - 01/30/26 03:04:27 - 0:00:35 - === Iteration 10400
+INFO [341086] - 01/30/26 03:04:27 - 0:00:35 - DQN loss: 0.19179
+INFO [341086] - 01/30/26 03:04:28 - 0:00:37 - === Iteration 10800
+INFO [341086] - 01/30/26 03:04:28 - 0:00:37 - DQN loss: 0.19676
+INFO [341086] - 01/30/26 03:04:30 - 0:00:38 - === Iteration 11200
+INFO [341086] - 01/30/26 03:04:30 - 0:00:38 - DQN loss: 0.20667
+INFO [341086] - 01/30/26 03:04:31 - 0:00:39 - === Iteration 11600
+INFO [341086] - 01/30/26 03:04:31 - 0:00:39 - DQN loss: 0.22734
+INFO [341086] - 01/30/26 03:04:32 - 0:00:40 - === Iteration 12000
+INFO [341086] - 01/30/26 03:04:32 - 0:00:40 - DQN loss: 0.22346
+INFO [341086] - 01/30/26 03:04:33 - 0:00:42 - === Iteration 12400
+INFO [341086] - 01/30/26 03:04:33 - 0:00:42 - DQN loss: 0.20035
+INFO [341086] - 01/30/26 03:04:35 - 0:00:43 - === Iteration 12800
+INFO [341086] - 01/30/26 03:04:35 - 0:00:43 - DQN loss: 0.20505
+INFO [341086] - 01/30/26 03:04:36 - 0:00:44 - === Iteration 13200
+INFO [341086] - 01/30/26 03:04:36 - 0:00:44 - DQN loss: 0.20451
+INFO [341086] - 01/30/26 03:04:37 - 0:00:46 - === Iteration 13600
+INFO [341086] - 01/30/26 03:04:37 - 0:00:46 - DQN loss: 0.21258
+INFO [341086] - 01/30/26 03:04:39 - 0:00:47 - === Iteration 14000
+INFO [341086] - 01/30/26 03:04:39 - 0:00:47 - DQN loss: 0.22652
+INFO [341086] - 01/30/26 03:04:40 - 0:00:49 - === Iteration 14400
+INFO [341086] - 01/30/26 03:04:40 - 0:00:49 - DQN loss: 0.21965
+INFO [341086] - 01/30/26 03:04:42 - 0:00:50 - === Iteration 14800
+INFO [341086] - 01/30/26 03:04:42 - 0:00:50 - DQN loss: 0.19112
+INFO [341086] - 01/30/26 03:04:43 - 0:00:51 - === Iteration 15200
+INFO [341086] - 01/30/26 03:04:43 - 0:00:51 - DQN loss: 0.23998
+INFO [341086] - 01/30/26 03:04:44 - 0:00:53 - === Iteration 15600
+INFO [341086] - 01/30/26 03:04:44 - 0:00:53 - DQN loss: 0.24220
+INFO [341086] - 01/30/26 03:04:46 - 0:00:54 - === Iteration 16000
+INFO [341086] - 01/30/26 03:04:46 - 0:00:54 - DQN loss: 0.21251
+INFO [341086] - 01/30/26 03:04:47 - 0:00:55 - === Iteration 16400
+INFO [341086] - 01/30/26 03:04:47 - 0:00:55 - DQN loss: 0.25066
+INFO [341086] - 01/30/26 03:04:48 - 0:00:57 - === Iteration 16800
+INFO [341086] - 01/30/26 03:04:48 - 0:00:57 - DQN loss: 0.23104

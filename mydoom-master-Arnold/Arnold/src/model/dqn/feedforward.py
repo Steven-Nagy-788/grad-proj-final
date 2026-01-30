@@ -71,11 +71,11 @@ class DQNFeedforward(DQN):
             [variables[:, -1, i] for i in range(self.params.n_variables)],
         )
 
-        # compute scores
-        mask = torch.ByteTensor(output_sc1.size()).fill_(0)
+        # compute scores: build boolean mask on the same device as outputs
+        mask = torch.zeros(output_sc1.size(), dtype=torch.bool, device=output_sc1.device)
         for i in range(batch_size):
-            mask[i, int(actions[i, -1])] = 1
-        scores1 = output_sc1.masked_select(self.get_tensor(mask))
+            mask[i, int(actions[i, -1])] = True
+        scores1 = output_sc1.masked_select(mask if not self.cuda else mask.cuda())
         scores2 = rewards[:, -1] + (
             self.params.gamma * output_sc2.max(1)[0] * (1 - isfinal[:, -1])
         )
