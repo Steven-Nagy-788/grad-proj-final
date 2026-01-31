@@ -1105,480 +1105,145 @@
 
    1. #### ***Requirements Elicitation Techniques*** {#requirements-elicitation-techniques}
 
-*The requirements elicitation process employed a combination of **qualitative and analytical techniques** to ensure alignment with stakeholder needs, academic objectives, and real-world applicability.*
+      *The requirements elicitation process employed a combination of **qualitative and analytical techniques** to ensure alignment with stakeholder needs, academic objectives, and real-world applicability.*
 
-### ***3.1.1 Literature Review and Document Analysis***
+      ### ***3.1.1 Literature Review and Document Analysis***
+      *A systematic review of **peer-reviewed academic research** was conducted to identify common categories of game bugs, limitations of existing automated testing approaches, and successful applications of reinforcement learning in game environments. Key sources included ACM Digital Library and ArXiv preprints. This technique ensured that the system requirements are grounded in **validated research findings** rather than ad-hoc assumptions.*
+      
+      ***Outcome:*** *Identification of core functional requirements such as autonomous level execution, stuck-state detection, and bug classification.*
 
-*A systematic review of **peer-reviewed academic research** was conducted to identify:*
+      ### ***3.1.2 Industry Practice Analysis (Benchmarking)***
+      *An analysis of **current industry QA workflows** was performed through review of developer postmortems, commercial tool documentation (Unity Test Runner, GameBench), and GDC talks. This helped identify practical requirements such as structured bug reports and integration potential with CI/CD pipelines.*
 
-* *Common categories of game bugs*
+      ***Outcome:*** *Requirement for natural-language bug reports and developer-friendly outputs (severity, screenshots, timestamps).*
 
-* *Limitations of existing automated testing approaches*
+      ### ***3.1.3 Prototyping and Iterative Refinement***
+      *Early functional prototypes of the RL agent execution were developed to validate assumptions. Observations revealed needs for deterministic execution control and efficient storage of high-frequency telemetry.*
 
-* *Successful applications of reinforcement learning in game environments*
+      ***Outcome:*** *Refinement of functional requirements and identification of performance constraints.*
 
-* *Metrics used for evaluating level difficulty and playability*
+   2. #### ***Similar Systems*** {#similar-systems}
 
-*Key sources included IEEE Transactions on Games, arXiv preprints, and Scopus-indexed conference papers. This technique ensured that the system requirements are grounded in **validated research findings** rather than ad-hoc assumptions.*
+      *This section positions the proposed framework within the broader landscape of automated game testing, referencing key academic works and industrial tools.*
 
-***Outcome:***
+      ---
 
-* *Identification of core functional requirements such as autonomous level execution, stuck-state detection, and bug classification*
+      ### ***3.2.1 Academic Scientific Research***
+      *Recent research has explored various aspects of AI-driven game testing:*
 
-* *Definition of non-functional requirements related to reproducibility, scalability, and precision*
+      *   ***Agent-Based Design Testing:*** *Studies such as "Artificial Players in the Design Process" [1] and "Artificial Playfulness" [3] demonstrate the utility of automated agents in validating level design and playability without human intervention.*
+      *   ***AI in User Research:*** *"Usertesting Without the User" [2] and "Charting the Uncharted with GUR" [4] investigate how AI can supplement expert evaluation in Games User Research (GUR), providing objective metrics where human testing is resource-constrained.*
+      *   ***Behavior-Driven Development (BDD):*** *Recent work on "BDD-Based Framework with RL Integration" [5] proposes combining formal testing specifications with reinforcement learning, highlighting the move towards structured automated testing.*
+      *   ***Human-Like Agents:*** *Research on "Automated Video Game Testing Using Synthetic and Human-Like Agents" [6] validates that RL-derived agents can compete with human testers in bug-finding coverage, supporting our choice of RL for the core engine.*
+      *   ***Bug Taxonomy:*** *The "Detailed Taxonomy of Game Bugs" [7] provides a comprehensive implementation-focused categorization (e.g., navigational, graphical, logic faults), which serves as the foundation for our system's detection modules.*
 
-  ### ***3.1.2 Supervisor and Academic Stakeholder Consultation***
+      ***Relation to Proposed System:*** *The proposed framework builds upon these foundational works by integrating **Reinforcement Learning** for robust navigation with **Computer Vision** and **LLMs** for semantic bug reporting, addressing the "explainability" gap often found in pure agent-based approaches.*
 
-*Regular consultations were conducted with the **academic supervisor** to validate:*
+      ---
 
-* *Project scope and feasibility within a graduation timeline*
+      ### ***3.2.2 Market/Industrial Research***
+      *   ***Scripted Bots:** Deterministic but fragile; require constant maintenance for map changes.*
+      *   ***Analytics Platforms (Unity Analytics):** Focus on aggregate player data, lacking autonomous active testing capabilities.*
+      *   ***AI QA Platforms (e.g., modl.ai):** Commercial solutions offering similar capabilities but often operate as "black boxes" with high costs.*
 
-* *Alignment with faculty evaluation criteria*
+      ***Key Differentiator:** *Our system provides an **open-source, engine-agnostic** framework that prioritizes **low-cost (or zero-cost) deployment** using local resources, specifically tailored for accessible academic and indie development contexts.*
 
-* *Appropriate balance between implementation and research contribution*
+   3. #### ***Functional Requirements (MVP Scope)*** {#functional-requirements}
 
-*These discussions influenced decisions such as:*
+      *The following requirements define the Minimum Viable Product (MVP) scope, focusing on core autonomous testing and verifiable bug detection within the $0-100 budget constraint.*
 
-* *Limiting the proof-of-concept to a single engine (VizDoom)*
+      1. ##### ***System Functions*** {#system-functions}
 
-* *Prioritizing reproducibility and explainability over end-user polish*
+         ***Core Execution & Telemetry (Must-Have)***
+         *   *FR-01: Autonomous Navigation:* The system must execute levels using a pre-trained DQN agent without human input.
+         *   *FR-02: Telemetry Capture:* The system must record agent health, position, and death events at 35Hz.
+         *   *FR-03: Deterministic Execution:* The system must support seeded runs to ensure <10% variance in re-tests.
 
-* *Positioning the framework as a QA augmentation tool rather than a replacement for human testers*
+         ***Automated Bug Detection (Must-Have)***
+         *   *FR-04: Stuck State Detection:* Identify instances where agent position is unchanged for >100 frames.
+         *   *FR-05: Instant Death Detection:* Flag events where health drops >80% in a single frame.
+         *   *FR-06: Solvability Check:* Boolean validation of whether the agent reached the exit/objective.
 
-***Outcome:***
+         ***Analysis & Reporting (Should-Have)***
+         *   *FR-07: Hardness Scoring:* Calculate a 0-100 difficulty score based on death rate and time.
+         *   *FR-08: LLM Integration (Low-Cost):* Use local Ollama or free-tier APIs (Gemini/Groq) to generate text descriptions for detected anomalies.
+         *   *FR-09: Basic Visual Glitch Detection:* Use a lightweight CV model (if local GPU available) to flag rendering errors.
 
-* *Refined scope definition*
+         ***Data & Storage (Must-Have)***
+         *   *FR-10: Database Storage:* Persist runs, events, and metrics in a relational database (PostgreSQL/Supabase) for regression analysis.
 
-* *Clear success metrics aligned with academic assessment*
+      2. ##### ***Detailed Functional Specification*** {#detailed-functional-specification}
 
-  ### ***3.1.3 Industry Practice Analysis (Benchmarking)***
+         *The following tables detail the core functional requirements.*
 
-*An analysis of **current industry QA workflows** was performed through:*
+         *Table 3: Autonomous Navigation Requirement*
 
-* *Review of publicly available postmortems from game studios*
-
-* *Tool documentation from commercial QA solutions*
-
-* *Developer blogs and conference talks (GDC)*
-
-*This technique helped identify practical requirements such as:*
-
-* *Structured bug reports with reproduction steps*
-
-* *Integration potential with existing QA pipelines*
-
-* *Actionable output rather than raw telemetry*
-
-***Outcome:***
-
-* *Requirement for natural-language bug reports*
-
-* *Emphasis on developer-friendly outputs (severity, screenshots, timestamps)*
-
-  ---
-
-  ### ***3.1.4 Prototyping and Iterative Refinement***
-
-*Early functional prototypes of the RL agent execution and telemetry extraction modules were developed to validate assumptions and uncover hidden requirements.*
-
-*Observations from prototype runs revealed needs such as:*
-
-* *Deterministic execution control*
-
-* *Efficient storage of high-frequency telemetry*
-
-* *Threshold-based bug triggering to avoid false positives*
-
-***Outcome:***
-
-* *Refinement of functional requirements*
-
-* *Identification of performance and storage constraint*
-
-  
-
-
-  2. #### ***Similar Systems*** {#similar-systems}
-
-*This section examines existing systems related to automated game testing and positions the proposed framework within the broader academic and industrial landscape. The system is designed as a **stand-alone testing framework** that can also be integrated as a **component within larger QA or CI/CD pipelines**.*
-
----
-
-### ***3.2.1 Academic Scientific Research***
-
-*Several academic studies have explored automated game testing using AI-driven approaches. The most relevant works include:*
-
----
-
-***1\. Arıyürek et al. (2019) – Automated Video Game Testing Using Synthetic and Humanlike Agents***
-
-*This work investigates the use of AI agents to simulate human gameplay for testing purposes. The agents are evaluated based on coverage and realism.*
-
-***Strengths:***
-
-* *Demonstrates feasibility of agent-based automated testing*
-
-* *Emphasizes human-like behavior*
-
-***Limitations:***
-
-* *Limited bug taxonomy coverage*
-
-* *Lacks structured bug reporting mechanisms*
-
-* *No engine-agnostic architecture*
-
-***Relation to Proposed System:***
-
-*The proposed framework extends this work by incorporating **formal bug detection**, **telemetry-based metrics**, and **natural language reporting**.*
-
----
-
-***2\. Mastain & Petrillo (2023) – BDD-Based Framework with RL Integration***
-
-*This research integrates reinforcement learning into behavior-driven development (BDD) testing workflows.*
-
-***Strengths:***
-
-* *Combines RL with formal testing specifications*
-
-* *Strong theoretical grounding*
-
-***Limitations:***
-
-* *Requires manual scenario definitions*
-
-* *Less effective for emergent gameplay behaviors*
-
-***Relation to Proposed System:***
-
-*The proposed system removes the dependency on predefined test scripts, allowing RL agents to **discover bugs autonomously** through exploration.*
-
----
-
-***3\. Butt et al. (2023) – Taxonomy of Game Bugs***
-
-*This study presents a comprehensive taxonomy of game implementation bugs across genres.*
-
-***Strengths:***
-
-* *Detailed classification of bug types*
-
-* *Empirically grounded taxonomy*
-
-***Limitations:***
-
-* *No automated detection mechanism*
-
-* *Serves as descriptive rather than operational research*
-
-***Relation to Proposed System:***
-
-*The proposed framework operationalizes this taxonomy by mapping bug categories to **detectable telemetry patterns and visual anomalies**.*
-
-***Summary of Academic Comparison***
-
-| *Feature* | *Prior Research* | *Proposed System* |
-| ----- | ----- | ----- |
-| *Autonomous testing* | *Partial* | *Yes* |
-| *RL-driven exploration* | *Limited* | *Yes* |
-| *Engine-agnostic design* | *No* | *Yes* |
-| *Bug taxonomy integration* | *Descriptive* | *Operational* |
-| *Natural language reports* | *No* | *Yes* |
-
-	
-
-#####  {#heading}
-
-##### 
-
-1. ##### ***Market/Industrial Research*** {#market/industrial-research}
-
-*The industrial landscape for automated game testing and quality assurance includes both **established commercial tools** and **emerging AI-powered solutions**. These systems vary in scope, automation level, and analytical depth. This section reviews representative market offerings, discusses their strengths and limitations, and positions the proposed framework relative to them.*
-
----
-
-#### ***A) Scripted Test Bots***
-
-*Many game development studios utilize **in-house scripted bots** or macros to automate repetitive testing workflows.*
-
-***Examples***
-
-* *Navigation testers that walk through levels*
-
-* *Combat testers that trigger attack sequences*
-
-* *Regression scripts that verify game builds after updates*
-
-***Strengths***
-
-* *Predictable and deterministic execution*
-
-* *Simple to write for narrow cases*
-
-* *Useful for repeated regression checks*
-
-***Weaknesses***
-
-* *Fragile and high maintenance — scripts must be updated for every new feature*
-
-* *Cannot generalize across game versions or unanticipated gameplay scenarios*
-
-* *Limited ability to detect emergent bugs or systemic quality issues*
-
-***Comparison to Proposed Framework***
-
-* ***Proposed System Advantage:** Uses **RL-driven agents** that adapt their behavior, reducing manual scripting and maintenance burdens.*
-
-* ***Proposed System Advantage:** Can explore unexpected states and gameplay interactions, improving discovery of emergent bugs.*
-
-  ---
-
-  #### ***B) Telemetry & Performance Analytics Platforms***
-
-*Third-party platforms such as Unity Analytics, GameBench, and custom telemetry dashboards provide deep insights into player behavior and performance metrics.*
-
-***Examples***
-
-* *Unity Analytics (industry standard for Unity-based games)*
-
-* *GameBench (real-time performance monitoring across devices)*
-
-***Strengths***
-
-* *Scalable collection of telemetry from many users and sessions*
-
-* *Rich visualization and reporting tools*
-
-* *Performance profiling across devices*
-
-***Weaknesses***
-
-* ***Not autonomous testers:** These tools do not automatically generate test cases or analyze gameplay for quality defects*
-
-* ***No innate bug detection logic:** Require manual analysis or post-hoc interpretation*
-
-* *Focused primarily on performance & usage, not QA logic*
-
-***Comparison to Proposed Framework***
-
-* ***Proposed System Advantage:** Goes beyond telemetry collection to **autonomously analyze telemetry and detect quality issues***
-
-* ***Proposed System Advantage:** Generates **structured bug reports** with actionable insights and remediation context*
-
-  ---
-
-  #### ***C) Commercial AI-Assisted QA Platforms***
-
-*Several vendors and startups are now marketing **AI-powered automated QA tools** that leverage machine learning to assist game testing.*
-
-***Examples***
-
-* *AI QA services integrated into continuous integration (CI) pipelines*
-
-* *Third-party machine learning modules that claim to automatically test gameplay*
-
-***Strengths***
-
-* *Promise of automation — can run tests without full human supervision*
-
-* *Integration options with CI/CD workflows*
-
-***Weaknesses***
-
-* ***Opaque ML models:** Behaviors and detection logic are often black-box and undocumented*
-
-* ***Limited generalizability:** Many tools are tied to specific engines or platforms*
-
-* ***Lack of academic validation:** Few tools have documented performance metrics or reproducibility evidence*
-
-* *High adoption cost for smaller studios or individual developers*
-
-***Comparison to Proposed Framework***
-
-4. ***Proposed System Advantage:** Built to be **open-source and transparent**, enabling inspection, tuning, and extension*
-
-5. ***Proposed System Advantage:** Engine‐agnostic design via **adapter pattern**, not tied to a single engine*
-
-6. ***Proposed System Advantage:** Combines **reinforcement learning, telemetry analytics, computer vision, and natural-language reporting** into a unified, explainable pipeline*
-
-   
-
-   1. #### ***Functional Requirements*** {#functional-requirements}
-
-   *Showdown with a figure of the system use case diagram.*
-
-|  |
-| :---- |
-
-*Figure 2: Use-Case Diagram of XYZ Project*
-
-1. ##### ***System Functions***  {#system-functions}
-
-   
-
-   ***Core Execution & Telemetry***
-
-   
-
-   *• **The system must** autonomously navigate and execute game levels using Deep Reinforcement Learning (DQN) agents without human intervention.*
-
-   *• **The system must** collect frame-by-frame gameplay telemetry (health, position, ammunition, events) at a frequency of 35 Hz.*
-
-   
-
-   *• **The system must** allow users to configure the number of test episodes per map (defaulting to 5\) and set maximum episode durations.*
-
-   
-
-   *• **The system must** utilize an engine-specific adapter (e.g., VizDoom) to translate game states into abstract data for the RL agent.*
-
-   
-
-   ***Automated Bug Detection***
-
-   *• **The system must** detect "Stuck States" where the agent's position remains unchanged for a specific threshold (e.g., 100+ frames).*
-
-   
-
-   *• **The system must** detect "Instant Death" events where health drops significantly (e.g., \>80%) in a single frame.*
-
-   
-
-   *• **The system must** identify visual anomalies (texture corruption, clipping, UI errors) using a Computer Vision (CNN) module running in parallel with gameplay.*
-
-   
-
-   *• **The system must** validate level solvability by verifying if the agent can reach the exit or complete objectives within the timeout threshold.*
-
-   
-
-   ***Analysis & Reporting***
-
-   
-
-   *• **The system must** calculate an objective "Hardness Score" (0–100) for each level based on weighted factors like death rate, completion time, and navigation complexity.*
-
-   
-
-   *• **The system should** generate natural language bug reports using an LLM (e.g., GPT-4 or Claude) that combines telemetry data with visual context to describe errors.*
-
-   
-
-   *• **The system should** identify "Unreachable Areas" by generating heatmaps that highlight map regions with low visit frequency (\<10%) across multiple runs.*
-
-   
-
-   *• **The system must** store all maps, runs, events, metrics, and bug reports in a centralized PostgreSQL database.*
-
-   ***Visualization & User Interface***
-
-   *• **Users should be able to** view a web-based dashboard containing bug reports, severity badges, and reproduction steps.*
-
-   
-
-   *• **Users should be able to** watch gameplay video replays with synchronized event overlays and timestamped bug markers.*
-
-   
-
-   *• **Users should be able to** compare difficulty metrics between different map versions using side-by-side charts.*
-
-   
-
-   *• **The system could** support extension to other game engines (Unity, Unreal) through the implementation of additional adapter classes.*
-
-   *Summary of Priorities*
-
-| *Requirement ID* | *Function Description* | *Priority* |
-| ----- | ----- | ----- |
-| ***FR-01*** | *Autonomous agent navigation and gameplay* | ***Must-have*** |
-| ***FR-02*** | *Real-time telemetry extraction (Health, Position)* | ***Must-have*** |
-| ***FR-03*** | *Behavioral bug detection (Stuck, Instant Death)* | ***Must-have*** |
-| ***FR-04*** | *Visual anomaly detection via Computer Vision* | ***Must-have*** |
-| ***FR-05*** | *Algorithmic Difficulty/Hardness Scoring* | ***Must-have*** |
-| ***FR-06*** | *Database storage for cross-run regression analysis* | ***Must-have*** |
-| ***FR-07*** | *LLM-generated natural language bug reports* | ***Should-have*** |
-| ***FR-08*** | *Web Dashboard for visualization and playback* | ***Should-have*** |
-| ***FR-09*** | *Cross-engine compatibility (Unity/Unreal adapters)* | ***Could-have*** |
-
-   
-
-   
-
-   2. ##### ***Detailed Functional Specification*** {#detailed-functional-specification}
-
-   *This section lists the detailed functional requirements in ranked order. Each functional requirement should be specified in a format similar to the following:*
-
-      *Table 1: TReq. Name*
-
-| *FR01* | *Req. Name* |
+| *FR-01* | *Autonomous Navigation* |
 | :---- | :---- |
-| ***Description*** |  |
-| ***Input*** |  |
-| ***Output*** |  |
-| ***Priority*** | *Indicate the priority level of the requirement, such as "Must-have", "Should-have", or "Could-have".* |
-| ***Pre-condition***  | *None* |
-| ***Post- condition*** |  |
+| ***Description*** | *The system must execute levels using a pre-trained DQN agent without human input.* |
+| ***Input*** | *Game Level/Map file, Trained Model (.h5/onnx)* |
+| ***Output*** | *Agent Control Actions (Movement, Shooting)* |
+| ***Priority*** | *Must-have* |
+| ***Pre-condition*** | *Game environment initialized, Model loaded successfully.* |
+| ***Post- condition*** | *Episode completes (Success/Failure/Timeout) and logs are saved.* |
+
+         *Table 4: Telemetry Capture Requirement*
+
+| *FR-02* | *Telemetry Capture* |
+| :---- | :---- |
+| ***Description*** | *The system must record agent health, position, and death events at 35Hz.* |
+| ***Input*** | *Game State Data stream* |
+| ***Output*** | *Structured Log File (JSON/CSV) or Database Entry* |
+| ***Priority*** | *Must-have* |
+| ***Pre-condition*** | *Level execution started.* |
+| ***Post- condition*** | *Telemetry data persisted to storage.* |
 
       3. ##### ***Behavioural Modelling*** {#behavioural-modelling}
 
-   *It includes sequence diagrams and/or activity diagrams of the use case identified.*
+         *The sequence diagram below illustrates the interaction between the RL Agent, Game Environment, and Logging System during a testing session.*
 
 |  |
 | :---- |
 
-      *Figure 3: XY Sequence Diagram*
+         *Figure 2: Sequence Diagram of Autonomous Testing Session*
 
       4. ##### ***Domain/Data Modelling*** {#domain/data-modelling}
 
-   *You should apply noun technique or brainstorming technique, and build the domain model class diagram.*
+         *The domain model represents the core entities involved in the testing framework.*
 
 |  |
 | :---- |
 
-      *Figure 4: Our Abstract Class Diagram*
+         *Figure 3: Domain Model Class Diagram*
 
-   2. #### ***Non-functional Requirements*** {#non-functional-requirements}
+   4. #### ***Non-functional Requirements*** {#non-functional-requirements}
 
-   *Specifies the particular non-functional attributes required by the system.* 
-
-   *Examples are provided below.*
-
-      1. ***Security***
-
-      ***Data Isolation:** The system must utilize containerization (Docker) to restrict the application’s filesystem access, ensuring test execution does not compromise the host operating system.*
-
-      ***Credential Management:** Database credentials and API keys (e.g., for LLM services) must be stored in environment variables or .env files and never hardcoded into the source code repository.*
-
-      ***Input Validation:** The system must sanitize all map file inputs to prevent path traversal attacks or malicious file execution during the loading phase.*
-
-      ***Access Control:** For production deployments, the API and Dashboard must operate behind an HTTPS/TLS certificate, with optional token-based authentication for remote access,.*
-
-         
-
-         
-
-         
-
-         
-
-         
+      1. ***Performance & Cost Efficiency***
+         *   *Inference Speed:* Agent inference must run at >30 FPS on standard CPUs (i5/Ryzen 5).
+         *   *Budget Compliance:* The core system must be deployable with $0 operational cost using free-tier services.
 
       2. ***Reliability***
+         *   *Crash Resilience:* The testing pipeline must log fatal errors without aborting the entire batch.
+         *   *Error Handling:* System should gracefully handle missing assets or corrupt map files.
 
-   *Deterministic Execution: To ensure reproducibility for regression testing, the system must control random seeds to keep agent performance variance below 10% across repeated runs on the same map.*
+      3. ***Portability***
+         *   *Containerization:* The system should be containerizable (Docker) to run consistently across different OSs (Linux/Windows).
 
-   *Data Integrity: The system must utilize an ACID-compliant database (PostgreSQL) to ensure that partial test runs or crashes do not result in corrupted metrics or incomplete run logs,.*
+      4. ***Security***
+         *   *Local Execution:* Agent and testing processes run locally, ensuring proprietary game assets are not leaked.
+         *   *Dependency Safety:* All dependencies (Python packages) will be vetted for vulnerabilities.
 
-   *Failure Handling: The system must gracefully handle game application crashes (e.g., "Instant Death" or process termination) by capturing the stack trace and logging the event without crashing the entire testing pipeline,.*
+      5. ***Maintainability***
+         *   *Modular Design:* The RL agent, environment wrapper, and logging modules should be loosely coupled.
+         *   *Documentation:* All code must include docstrings and a README for setup.
 
-         
+      6. ***Availability***
+         *   *Offline Capability:* The core testing loop must function without an active internet connection (unless using cloud LLMs).
 
-      3. ***Portability***  
-      4. ***Maintainability***  
-      5. ***Availability***  
-      6. ***Usability***  
-      7. ***Others as appropriate***
+      7. ***Usability***
+         *   *CLI Interface:* Simple command-line flags for common tasks (e.g., `--train`, `--test`, `--map E1M1`).
+         *   *Readable Reports:* Output logs should be human-readable or easily visualized.
+
 
 7. ### ***System Design** (OPTIONAL: if there is a prototype)* {#system-design-(optional:-if-there-is-a-prototype)}
 
@@ -1644,13 +1309,20 @@
 
 ***References***
 
-*\[1\] Butt, N. A., Sherin, S., Khan, M. U., Jilani, A. A., & Iqbal, M. Z. (2023). Deriving and Evaluating a Detailed Taxonomy of Game Bugs. arXiv preprint arXiv:2311.16645.*
+*   [1] *Artificial Players in the Design Process: Developing an Automated Testing Tool for Game Level and World Design*. https://dl.acm.org/doi/abs/10.1145/3410404.3414249
 
-*\[2\] Arıyürek, S., Betin-Can, A., & Surer, E. (2019). Automated Video Game Testing Using Synthetic and Humanlike Agents. IEEE Transactions on Games, 13(1), 50-67.*
+*   [2] *Usertesting Without the User: Opportunities and Challenges of an AI-Driven Approach in Games User Research*. https://dl.acm.org/doi/abs/10.1145/3183568
 
-*\[3\] Mastain, V., & Petrillo, F. (2023). BDD-Based Framework with RL Integration: An Approach for Videogames Automated Testing. arXiv preprint arXiv:2311.03364.*
+*   [3] *Artificial Playfulness: A Tool for Automated Agent-Based Playtesting*. https://dl.acm.org/doi/abs/10.1145/3290607.3313039
 
-*\[4\] Butt, N. A., Sherin, S., Khan, M. U., Jilani, A. A., & Iqbal, M. Z. (2023). Deriving and Evaluating a Detailed Taxonomy of Game Bugs. arXiv preprint arXiv:2311.16645.*
+*   [4] *Charting the Uncharted with GUR: How AI Playtesting Can Supplement Expert Evaluation*. https://dl.acm.org/doi/abs/10.1145/3555858.3555880
+
+*   [5] Mastain, V., & Petrillo, F. (2023). *BDD-Based Framework with RL Integration: An Approach for Videogames Automated Testing*. arXiv preprint arXiv:2311.03364.
+
+*   [6] Arıyürek, S., Betin-Can, A., & Surer, E. (2019). *Automated Video Game Testing Using Synthetic and Humanlike Agents*. IEEE Transactions on Games, 13(1), 50-67.
+
+*   [7] Butt, N. A., Sherin, S., Khan, M. U., Jilani, A. A., & Iqbal, M. Z. (2023). *Deriving and Evaluating a Detailed Taxonomy of Game Bugs*. arXiv preprint arXiv:2311.16645.
+
 
 [image1]: <data:image/png;base64,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>
 
